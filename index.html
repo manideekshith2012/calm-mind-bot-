@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Calm Mind Bot</title>
+
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  background: linear-gradient(180deg, #ffb347, #ffcc80, #ffe0b2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+.chatbox {
+  width: 360px;
+  height: 560px;
+  background: #fff3e0;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.header {
+  background: #ff6f00;
+  color: white;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+.header button {
+  margin-left: auto;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.messages {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.msg {
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-radius: 16px;
+  max-width: 85%;
+}
+
+.user {
+  background: #ff9800;
+  color: white;
+  margin-left: auto;
+}
+
+.bot {
+  background: #fff8e1;
+  color: #5d4037;
+}
+
+.input {
+  display: flex;
+  padding: 10px;
+}
+
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+}
+
+button.send {
+  margin-left: 6px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: none;
+  background: #ff6f00;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="bgMusic" loop>
+  <source src="krishna_flute.mp3" type="audio/mpeg">
+</audio>
+
+<div class="chatbox">
+  <div class="header">
+    🧘 Calm Mind Bot
+    <button id="musicBtn">🎵 Start</button>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="input">
+    <input id="input" placeholder="Share what’s on your mind…" />
+    <button class="send" onclick="send()">Send</button>
+  </div>
+</div>
+
+<script>
+/* 🔐 PASTE YOUR API KEY HERE */
+const API_KEY = "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";
+
+const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+const music = document.getElementById("bgMusic");
+const btn = document.getElementById("musicBtn");
+music.volume = 0.25;
+
+btn.onclick = async () => {
+  try {
+    await music.play();
+    btn.textContent = "🎶 Playing";
+  } catch {
+    alert("Click again to allow music");
+  }
+};
+
+const chat = [
+  {
+    role: "system",
+    content: "You are a calm, kind, positive mental wellness companion. Speak gently. Reduce stress. Give short comforting replies."
+  }
+];
+
+function add(text, cls) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.textContent = text;
+  document.getElementById("messages").appendChild(d);
+}
+
+function speak(text) {
+  music.volume = 0.05;
+
+  const voice = new SpeechSynthesisUtterance(text);
+  voice.rate = 0.9;
+
+  voice.onend = () => {
+    music.volume = 0.25;
+  };
+
+  speechSynthesis.speak(voice);
+}
+
+async function send() {
+  const i = document.getElementById("input");
+  const text = i.value.trim();
+  if (!text) return;
+
+  add(text, "user");
+  i.value = "";
+
+  chat.push({ role: "user", content: text });
+
+  add("Thinking...", "bot");
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + API_KEY,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost",
+        "X-Title": "CalmMindBot"
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-3.5-turbo",
+        messages: chat,
+        temperature: 0.8,
+        max_tokens: 200
+      })
+    });
+
+    const data = await res.json();
+    document.querySelector(".bot:last-child").remove();
+
+    const reply = data.choices[0].message.content;
+
+    add(reply, "bot");
+    chat.push({ role: "assistant", content: reply });
+
+    speak(reply);
+
+  } catch {
+    document.querySelector(".bot:last-child").remove();
+    add("I'm here with you. Stay calm 🌼", "bot");
+  }
+}
+</script>
+
+</body>
+</html>
