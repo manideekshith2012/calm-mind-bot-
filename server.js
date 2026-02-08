@@ -1,10 +1,17 @@
-﻿const express = require("express");
+const express = require("express");
+const cors = require("cors");
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+  res.send("Chatbot server is running!");
+});
 
 app.post("/chat", async (req, res) => {
   try {
@@ -15,40 +22,29 @@ app.post("/chat", async (req, res) => {
       {
         method: "POST",
         headers: {
-          Authorization:
-            "Bearer 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",
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://calm-mind-bot-2.onrender.com/",
-          "X-Title": "CalmBot",
+          "Authorization": "Bearer " + process.env.API_KEY,
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           model: "openai/gpt-oss-120b:free",
           messages: [
-            {
-              role: "system",
-              content:
-                "You are a calm, friendly assistant that comforts users and gives positive support.",
-            },
-            { role: "user", content: userMessage },
-          ],
-        }),
+            { role: "system", content: "You are a helpful and friendly assistant." },
+            { role: "user", content: userMessage }
+          ]
+        })
       }
     );
 
     const data = await response.json();
 
-    console.log(data); // 👈 IMPORTANT (to see errors in terminal)
+    res.json({
+      reply: data.choices?.[0]?.message?.content || "No reply"
+    });
 
-    res.json(data);
   } catch (err) {
-    console.log(err);
-    res.json({ error: "API failed" });
+    res.json({ reply: "Server error" });
   }
 });
-app.get("/", (req, res) => {
-  res.send("Chatbot server is running!");
-});
 
-app.listen(3001, () => console.log("Server running"));
-
-
+const PORT = 3000;
+app.listen(PORT, () => console.log("Server running on port " + PORT));
