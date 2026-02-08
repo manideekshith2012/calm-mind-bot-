@@ -45,6 +45,10 @@ app.post("/chat", async (req, res) => {
     res.json({ error: "API failed" });
   }
 });
+app.get("/", (req, res) => {
+  res.send("Chatbot server is running!");
+});
 
 app.listen(3001, () => console.log("Server running"));
+
 
