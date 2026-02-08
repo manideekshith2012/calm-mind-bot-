@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch");
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 const app = express();
 app.use(cors());
@@ -14,8 +14,6 @@ app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message;
 
-    console.log("User:", userMessage);
-
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -25,26 +23,23 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b:free",
         messages: [
-          { role: "system", content: "You are a calm assistant." },
+          { role: "system", content: "You are a calm, positive assistant who reduces stress." },
           { role: "user", content: userMessage }
         ]
       })
     });
 
     const data = await response.json();
-    console.log("AI RAW:", data);
 
-    if (!data.choices) {
-      return res.json({ reply: "API not responding. Check key/model." });
-    }
-
-    const reply = data.choices[0].message.content;
+    const reply =
+      data.choices?.[0]?.message?.content ||
+      "AI is thinking but gave no answer.";
 
     res.json({ reply });
 
   } catch (err) {
-    console.log("ERROR:", err);
-    res.json({ reply: "Server crashed while thinking." });
+    console.log(err);
+    res.json({ reply: "Server error while contacting AI." });
   }
 });
 
