@@ -14,6 +14,8 @@ app.post("/chat", async (req, res) => {
   try {
     const userMessage = req.body.message;
 
+    console.log("User:", userMessage);
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -23,32 +25,27 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b:free",
         messages: [
-          {
-            role: "system",
-            content: "You are a calm, friendly assistant who reduces stress and speaks positively."
-          },
-          {
-            role: "user",
-            content: userMessage
-          }
+          { role: "system", content: "You are a calm assistant." },
+          { role: "user", content: userMessage }
         ]
       })
     });
 
     const data = await response.json();
+    console.log("AI RAW:", data);
 
-    console.log(data); // IMPORTANT: shows errors in Render logs
+    if (!data.choices) {
+      return res.json({ reply: "API not responding. Check key/model." });
+    }
 
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      "Sorry, I couldn't reply.";
+    const reply = data.choices[0].message.content;
 
     res.json({ reply });
 
   } catch (err) {
-    console.log(err);
-    res.json({ reply: "Server error" });
+    console.log("ERROR:", err);
+    res.json({ reply: "Server crashed while thinking." });
   }
 });
 
-app.listen(3000, () => console.log("Server running on port 3000"));
+app.listen(3000, () => console.log("Server running"));
