@@ -18,7 +18,7 @@ app.post("/chat", async (req, res) => {
           Authorization:
             "Bearer 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",
           "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000",
+          "HTTP-Referer": "https://calm-mind-bot-2.onrender.com/",
           "X-Title": "CalmBot",
         },
         body: JSON.stringify({
@@ -47,3 +47,4 @@ app.post("/chat", async (req, res) => {
 });
 
 app.listen(3001, () => console.log("Server running"));
+
