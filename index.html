@@ -1,27 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AI Chatbot</title>
-
+  <title>Calm Mind Bot</title>
   <style>
     body {
-      background: black;
       font-family: Arial;
-      color: white;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
 
-    #chat {
+    #chatbox {
       width: 350px;
       height: 500px;
-      background: #111;
-      border-radius: 12px;
+      background: white;
+      border-radius: 15px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      padding: 10px;
     }
 
     #messages {
@@ -32,48 +30,45 @@
 
     .msg {
       padding: 8px;
-      margin: 6px;
-      border-radius: 8px;
+      margin: 5px;
+      border-radius: 10px;
     }
 
     .user {
-      background: #ff1493;
+      background: #ffd6a5;
       align-self: flex-end;
     }
 
     .bot {
-      background: #333;
+      background: #caffbf;
       align-self: flex-start;
     }
 
-    #inputBox {
+    #inputArea {
       display: flex;
     }
 
     input {
       flex: 1;
       padding: 8px;
-      border: none;
-      outline: none;
     }
 
     button {
-      background: #ff1493;
+      padding: 8px;
+      background: orange;
       border: none;
       color: white;
-      padding: 8px 12px;
-      cursor: pointer;
+      font-weight: bold;
     }
   </style>
 </head>
-
 <body>
 
-<div id="chat">
+<div id="chatbox">
   <div id="messages"></div>
 
-  <div id="inputBox">
-    <input id="input" placeholder="Type a message..." />
+  <div id="inputArea">
+    <input id="input" placeholder="Type your message..." />
     <button onclick="sendMessage()">Send</button>
   </div>
 </div>
@@ -91,11 +86,12 @@ function addMessage(text, cls) {
 async function sendMessage() {
   const input = document.getElementById("input");
   const text = input.value;
-
   if (!text) return;
 
   addMessage(text, "user");
   input.value = "";
+
+  addMessage("Thinking...", "bot");
 
   const res = await fetch(serverURL, {
     method: "POST",
@@ -106,10 +102,16 @@ async function sendMessage() {
   });
 
   const data = await res.json();
-  addMessage(data.reply, "bot");
+
+  document.getElementById("messages").lastChild.remove();
+
+  if (data.reply) {
+    addMessage(data.reply, "bot");
+  } else {
+    addMessage("No reply from AI", "bot");
+  }
 }
 </script>
 
 </body>
 </html>
-
