@@ -1,211 +1,155 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Calm Mind Bot</title>
+<title>Calm AI Chatbot</title>
 
 <style>
 body {
   margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to bottom right, #ffd6a5, #ffadad);
   height: 100vh;
-  background: linear-gradient(180deg, #ffb347, #ffcc80, #ffe0b2);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: Arial, sans-serif;
 }
 
-.chatbox {
-  width: 360px;
-  height: 560px;
-  background: #fff3e0;
+.chat-container {
+  width: 400px;
+  height: 600px;
+  background: #fff6e6;
   border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  overflow: hidden;
 }
 
 .header {
-  background: #ff6f00;
+  background: #ff9a8b;
   color: white;
-  padding: 12px;
-  font-size: 18px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-}
-
-.header button {
-  margin-left: auto;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
+  padding: 15px;
+  text-align: center;
+  font-size: 20px;
   font-weight: bold;
 }
 
 .messages {
   flex: 1;
-  padding: 12px;
+  padding: 10px;
   overflow-y: auto;
 }
 
-.msg {
-  padding: 10px 14px;
-  margin: 8px 0;
-  border-radius: 16px;
-  max-width: 85%;
-}
-
-.user {
-  background: #ff9800;
-  color: white;
-  margin-left: auto;
-}
-
-.bot {
-  background: #fff8e1;
-  color: #5d4037;
-}
-
-.input {
+.input-area {
   display: flex;
-  padding: 10px;
+  border-top: 1px solid #ddd;
 }
 
 input {
   flex: 1;
-  padding: 10px;
-  border-radius: 20px;
+  padding: 12px;
   border: none;
   outline: none;
 }
 
-button.send {
-  margin-left: 6px;
-  padding: 10px 16px;
-  border-radius: 20px;
+button {
+  background: #ff9a8b;
   border: none;
-  background: #ff6f00;
+  padding: 12px 18px;
   color: white;
-  font-weight: bold;
   cursor: pointer;
+}
+
+.user {
+  text-align: right;
+  margin: 8px;
+}
+
+.bot {
+  text-align: left;
+  margin: 8px;
+  color: #333;
 }
 </style>
 </head>
-
 <body>
 
-<audio id="bgMusic" loop>
-  <source src="krishna_flute.mp3" type="audio/mpeg">
-</audio>
+<div class="chat-container">
 
-<div class="chatbox">
-  <div class="header">
-    🧘 Calm Mind Bot
-    <button id="musicBtn">🎵 Start</button>
-  </div>
+  <div class="header">🌼 Calm AI Companion</div>
 
   <div class="messages" id="messages"></div>
 
-  <div class="input">
-    <input id="input" placeholder="Share what’s on your mind…" />
-    <button class="send" onclick="send()">Send</button>
+  <div class="input-area">
+    <input id="msg" placeholder="Type your thoughts..." />
+    <button onclick="sendMessage()">Send</button>
   </div>
+
 </div>
 
+<!-- Background music -->
+<audio id="music" autoplay loop>
+  <source src="krishna_flute.mp3" type="audio/mpeg">
+</audio>
+
 <script>
-/* 🔐 PASTE YOUR API KEY HERE */
-const API_KEY = "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";
+const music = document.getElementById("music");
 
-const API_URL = "https://openrouter.ai/api/v1/chat/completions";
-
-const music = document.getElementById("bgMusic");
-const btn = document.getElementById("musicBtn");
-music.volume = 0.25;
-
-btn.onclick = async () => {
-  try {
-    await music.play();
-    btn.textContent = "🎶 Playing";
-  } catch {
-    alert("Click again to allow music");
-  }
-};
-
-const chat = [
-  {
-    role: "system",
-    content: "You are a calm, kind, positive mental wellness companion. Speak gently. Reduce stress. Give short comforting replies."
-  }
-];
-
-function add(text, cls) {
-  const d = document.createElement("div");
-  d.className = "msg " + cls;
-  d.textContent = text;
-  document.getElementById("messages").appendChild(d);
+function addMessage(text, type) {
+  const msgBox = document.getElementById("messages");
+  const div = document.createElement("div");
+  div.className = type;
+  div.innerText = text;
+  msgBox.appendChild(div);
+  msgBox.scrollTop = msgBox.scrollHeight;
 }
 
 function speak(text) {
-  music.volume = 0.05;
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 0.95;
 
-  const voice = new SpeechSynthesisUtterance(text);
-  voice.rate = 0.9;
+  // slow music while speaking
+  music.volume = 0.1;
+  speech.onend = () => music.volume = 0.3;
 
-  voice.onend = () => {
-    music.volume = 0.25;
-  };
-
-  speechSynthesis.speak(voice);
+  speechSynthesis.speak(speech);
 }
 
-async function send() {
-  const i = document.getElementById("input");
-  const text = i.value.trim();
+async function sendMessage() {
+  const input = document.getElementById("msg");
+  const text = input.value.trim();
+
   if (!text) return;
 
-  add(text, "user");
-  i.value = "";
-
-  chat.push({ role: "user", content: text });
-
-  add("Thinking...", "bot");
+  addMessage("You: " + text, "user");
+  input.value = "";
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch("/chat", {
       method: "POST",
       headers: {
-        "Authorization": "Bearer " + API_KEY,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost",
-        "X-Title": "CalmMindBot"
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
-        messages: chat,
-        temperature: 0.8,
-        max_tokens: 200
-      })
+      body: JSON.stringify({ message: text })
     });
 
     const data = await res.json();
-    document.querySelector(".bot:last-child").remove();
 
-    const reply = data.choices[0].message.content;
+    let reply = "I couldn't respond. Try again.";
 
-    add(reply, "bot");
-    chat.push({ role: "assistant", content: reply });
+    if (data.choices && data.choices.length > 0) {
+      reply = data.choices[0].message.content;
+    }
 
+    addMessage("Bot: " + reply, "bot");
     speak(reply);
 
-  } catch {
-    document.querySelector(".bot:last-child").remove();
-    add("I'm here with you. Stay calm 🌼", "bot");
+  } catch (err) {
+    addMessage("Bot: Server error.", "bot");
   }
 }
 </script>
 
 </body>
 </html>
-
