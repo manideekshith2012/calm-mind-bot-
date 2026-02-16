@@ -1,13 +1,17 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
+app.use(express.static(__dirname));
 
 app.get("/", (req, res) => {
-  res.send("Chatbot server is running!");
+  res.sendFile(__dirname + "/index.html");
 });
 
 app.post("/chat", async (req, res) => {
@@ -23,7 +27,7 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "openai/gpt-oss-120b:free",
         messages: [
-          { role: "system", content: "You are a calm, positive assistant who reduces stress." },
+          { role: "system", content: "You are a calm, friendly assistant that reduces stress and gives positive replies." },
           { role: "user", content: userMessage }
         ]
       })
@@ -33,14 +37,14 @@ app.post("/chat", async (req, res) => {
 
     const reply =
       data.choices?.[0]?.message?.content ||
-      "AI is thinking but gave no answer.";
+      "I am here with you 🌿 Try asking again.";
 
     res.json({ reply });
 
   } catch (err) {
     console.log(err);
-    res.json({ reply: "Server error while contacting AI." });
+    res.json({ reply: "Server error. Try again." });
   }
 });
 
-app.listen(3000, () => console.log("Server running"));
+app.listen(3000, () => console.log("Server running on port 3000"));
